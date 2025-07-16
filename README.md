@@ -33,3 +33,25 @@ This is a browser-based 3D simulation of our solar system built using [Three.js]
 ### Prerequisites
 - A modern browser (Chrome, Firefox, Edge)
 - Internet connection (Three.js is loaded via CDN)
+
+---
+
+🎯 Educational Goals
+This project helps you learn and demonstrate:
+
+✅ 3D rendering with Three.js
+
+✅ DOM interaction using Vanilla JavaScript
+
+✅ Scene composition, lighting, camera positioning
+
+✅ Real-time updates via animation loop
+
+✅ Theme switching and UI state persistence
+
+✅ Basic user interaction using mouse and raycasting
+
+👨‍💻 Author
+Made with 💫 by Apoorva
+
+“The cosmos is within us. We are made of star-stuff.” – Carl Sagan
