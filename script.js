@@ -134,5 +134,41 @@ function animate() {
 
   renderer.render(scene, camera);
 }
+const tooltip = document.createElement("div");
+tooltip.style.position = "absolute";
+tooltip.style.padding = "4px 8px";
+tooltip.style.background = "rgba(0,0,0,0.7)";
+tooltip.style.color = "white";
+tooltip.style.borderRadius = "5px";
+tooltip.style.fontSize = "14px";
+tooltip.style.pointerEvents = "none";
+tooltip.style.display = "none";
+document.body.appendChild(tooltip);
+
+// Raycaster setup
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+// Mouse move listener on canvas
+canvas.addEventListener("mousemove", (event) => {
+  const rect = canvas.getBoundingClientRect();
+
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  const intersects = raycaster.intersectObjects(planets.map(p => p.mesh));
+
+  if (intersects.length > 0) {
+    const planet = planets.find(p => p.mesh === intersects[0].object);
+    tooltip.style.display = "block";
+    tooltip.innerText = planet.name;
+    tooltip.style.left = event.clientX + 10 + "px";
+    tooltip.style.top = event.clientY + 10 + "px";
+  } else {
+    tooltip.style.display = "none";
+  }
+});
 
 animate();
