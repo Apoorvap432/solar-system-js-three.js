@@ -33,6 +33,13 @@ body, html {
   width: 250px;
 }
 
+#pauseBtn{
+  padding: 8px;
+  border-radius: 6px;
+  color: white;
+  background-color: #007BFF;
+}
+
 #controls h2 {
   margin-bottom: 10px;
 }
