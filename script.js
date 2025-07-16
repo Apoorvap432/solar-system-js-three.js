@@ -25,7 +25,7 @@ const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
 const sun = new THREE.Mesh(sunGeometry, sunMaterial);
 scene.add(sun);
 
-// Planet definitions
+// Planets
 const planetData = [
   { name: "Mercury", radius: 6, size: 0.3, color: 0xaaaaaa },
   { name: "Venus", radius: 9, size: 0.5, color: 0xff9900 },
@@ -58,7 +58,6 @@ planetData.forEach((planet) => {
   scene.add(mesh);
   planets.push({ ...planet, mesh });
 
-  // Orbit line
   const orbitGeom = new THREE.RingGeometry(planet.radius - 0.02, planet.radius + 0.02, 64);
   const orbitMat = new THREE.MeshBasicMaterial({ color: 0x444444, side: THREE.DoubleSide });
   const orbit = new THREE.Mesh(orbitGeom, orbitMat);
@@ -66,11 +65,9 @@ planetData.forEach((planet) => {
   scene.add(orbit);
   orbits.push(orbit);
 
-  // Default speed and angle
   speeds[planet.name] = 0.01;
   angles[planet.name] = Math.random() * Math.PI * 2;
 
-  // Add control slider
   const sliderHTML = `
     <label>${planet.name}</label>
     <input type="range" min="0" max="0.05" step="0.001" value="${speeds[planet.name]}" 
@@ -91,6 +88,37 @@ document.getElementById("sliders").addEventListener("input", (e) => {
   const name = e.target.getAttribute("data-planet");
   speeds[name] = parseFloat(e.target.value);
 });
+
+// ⭐ ADD STARS TO BACKGROUND
+function addStars() {
+  const starGeometry = new THREE.BufferGeometry();
+  const starCount = 1000;
+  const positions = [];
+
+  for (let i = 0; i < starCount; i++) {
+    const x = (Math.random() - 0.5) * 1000;
+    const y = (Math.random() - 0.5) * 1000;
+    const z = (Math.random() - 0.5) * 1000;
+    positions.push(x, y, z);
+  }
+
+  starGeometry.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(positions, 3)
+  );
+
+  const starMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 1,
+    sizeAttenuation: true
+  });
+
+  const stars = new THREE.Points(starGeometry, starMaterial);
+  scene.add(stars);
+}
+
+// ⭐ Call it once
+addStars();
 
 function animate() {
   requestAnimationFrame(animate);
