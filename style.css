@@ -10,6 +10,31 @@ body, html {
   overflow: hidden;
   background: black;
   font-family: Arial, sans-serif;
+  transition: background 0.3s, color 0.3s;
+}
+
+#themeToggle {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  z-index: 10;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  background-color: #333;
+  color: white;
+}
+
+.light-theme {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.dark-theme {
+  background-color: #000000;
+  color: #ffffff;
 }
 
 #solarCanvas {
@@ -25,12 +50,17 @@ body, html {
   position: absolute;
   top: 20px;
   left: 20px;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.5);
   padding: 1rem;
   border-radius: 10px;
   color: white;
   z-index: 10;
   width: 250px;
+}
+
+.light-theme #controls {
+  background: rgba(255, 255, 255, 0.7);
+  color: black;
 }
 
 #pauseBtn{

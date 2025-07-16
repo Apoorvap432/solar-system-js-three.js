@@ -1,25 +1,28 @@
+// set up canvas and renderer
 const canvas = document.getElementById("solarCanvas");
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
+// Create the main 3D scene
 const scene = new THREE.Scene();
 
-// Camera
+// Camera Setup
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
   0.1,
   1000
 );
-camera.position.set(0, 2, 40);
+const initialCameraPosition = new THREE.Vector3(0, 2, 40);
+camera.position.copy(initialCameraPosition);
 
-// Lights
+//lighting setup
 const ambient = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambient);
 const point = new THREE.PointLight(0xffffff, 2);
 scene.add(point);
 
-// Sun
+//sun
 const sunGeometry = new THREE.SphereGeometry(3, 32, 32);
 const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
 const sun = new THREE.Mesh(sunGeometry, sunMaterial);
@@ -46,7 +49,6 @@ const angles = {};
 planetData.forEach((planet) => {
   const geometry = new THREE.SphereGeometry(planet.size, 32, 32);
   let material;
-
   if (planet.texture) {
     const texture = textureLoader.load(planet.texture);
     material = new THREE.MeshStandardMaterial({ map: texture });
@@ -58,6 +60,7 @@ planetData.forEach((planet) => {
   scene.add(mesh);
   planets.push({ ...planet, mesh });
 
+  // Orbit ring
   const orbitGeom = new THREE.RingGeometry(planet.radius - 0.02, planet.radius + 0.02, 64);
   const orbitMat = new THREE.MeshBasicMaterial({ color: 0x444444, side: THREE.DoubleSide });
   const orbit = new THREE.Mesh(orbitGeom, orbitMat);
@@ -65,9 +68,11 @@ planetData.forEach((planet) => {
   scene.add(orbit);
   orbits.push(orbit);
 
+  // Default orbit speeds
   speeds[planet.name] = 0.01;
   angles[planet.name] = Math.random() * Math.PI * 2;
 
+  // control panel sliders
   const sliderHTML = `
     <label>${planet.name}</label>
     <input type="range" min="0" max="0.05" step="0.001" value="${speeds[planet.name]}" 
@@ -76,53 +81,40 @@ planetData.forEach((planet) => {
   document.getElementById("sliders").innerHTML += sliderHTML;
 });
 
-// Pause/resume
+// pause button
 let paused = false;
 document.getElementById("pauseBtn").addEventListener("click", () => {
   paused = !paused;
   document.getElementById("pauseBtn").innerText = paused ? "Resume" : "Pause";
 });
 
-// Update speeds from sliders
+// speed adjustment
 document.getElementById("sliders").addEventListener("input", (e) => {
   const name = e.target.getAttribute("data-planet");
   speeds[name] = parseFloat(e.target.value);
 });
 
-// ⭐ ADD STARS TO BACKGROUND
-function addStars() {
+// stars
+let stars = null;
+function addStars(color = 0xffffff) {
+  if (stars) scene.remove(stars);
   const starGeometry = new THREE.BufferGeometry();
-  const starCount = 1000;
   const positions = [];
-
-  for (let i = 0; i < starCount; i++) {
+  for (let i = 0; i < 1000; i++) {
     const x = (Math.random() - 0.5) * 1000;
     const y = (Math.random() - 0.5) * 1000;
     const z = (Math.random() - 0.5) * 1000;
     positions.push(x, y, z);
   }
-
-  starGeometry.setAttribute(
-    'position',
-    new THREE.Float32BufferAttribute(positions, 3)
-  );
-
-  const starMaterial = new THREE.PointsMaterial({
-    color: 0xffffff,
-    size: 1,
-    sizeAttenuation: true
-  });
-
-  const stars = new THREE.Points(starGeometry, starMaterial);
+  starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  const starMaterial = new THREE.PointsMaterial({ color, size: 1, sizeAttenuation: true });
+  stars = new THREE.Points(starGeometry, starMaterial);
   scene.add(stars);
 }
 
-// ⭐ Call it once
-addStars();
-
+// main animation loop
 function animate() {
   requestAnimationFrame(animate);
-
   if (!paused) {
     planets.forEach((p) => {
       angles[p.name] += speeds[p.name];
@@ -131,39 +123,31 @@ function animate() {
       p.mesh.position.set(x, 0, z);
     });
   }
-
   renderer.render(scene, camera);
 }
+animate();
+
+// labels
 const tooltip = document.createElement("div");
-tooltip.style.position = "absolute";
-tooltip.style.padding = "4px 8px";
-tooltip.style.background = "rgba(0,0,0,0.7)";
-tooltip.style.color = "white";
-tooltip.style.borderRadius = "5px";
-tooltip.style.fontSize = "14px";
-tooltip.style.pointerEvents = "none";
-tooltip.style.display = "none";
+Object.assign(tooltip.style, {
+  position: "absolute", padding: "4px 8px", background: "rgba(0,0,0,0.7)",
+  color: "white", borderRadius: "5px", fontSize: "14px", pointerEvents: "none", display: "none"
+});
 document.body.appendChild(tooltip);
 
-// Raycaster setup
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-// Mouse move listener on canvas
 canvas.addEventListener("mousemove", (event) => {
   const rect = canvas.getBoundingClientRect();
-
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
   raycaster.setFromCamera(mouse, camera);
-
   const intersects = raycaster.intersectObjects(planets.map(p => p.mesh));
-
   if (intersects.length > 0) {
     const planet = planets.find(p => p.mesh === intersects[0].object);
-    tooltip.style.display = "block";
     tooltip.innerText = planet.name;
+    tooltip.style.display = "block";
     tooltip.style.left = event.clientX + 10 + "px";
     tooltip.style.top = event.clientY + 10 + "px";
   } else {
@@ -171,4 +155,62 @@ canvas.addEventListener("mousemove", (event) => {
   }
 });
 
-animate();
+// camera zoom on click
+window.addEventListener("click", (event) => {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(planets.map(p => p.mesh));
+  if (intersects.length > 0) {
+    const target = intersects[0].object.position;
+    moveCameraTo(target);
+  }
+});
+
+function moveCameraTo(targetPosition) {
+  const offset = new THREE.Vector3(0, 2, 5);
+  const newPos = targetPosition.clone().add(offset);
+  const startPos = camera.position.clone();
+  const duration = 1000;
+  const startTime = performance.now();
+  function animateCamera(time) {
+    const elapsed = time - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    camera.position.lerpVectors(startPos, newPos, t);
+    camera.lookAt(targetPosition);
+    if (t < 1) requestAnimationFrame(animateCamera);
+  }
+  requestAnimationFrame(animateCamera);
+}
+
+// double-click to reset camera
+canvas.addEventListener("dblclick", () => {
+  moveCameraTo(initialCameraPosition);
+});
+
+// theme toggle
+const themeToggle = document.getElementById("themeToggle");
+
+function applyTheme(theme) {
+  document.body.classList.remove("light-theme", "dark-theme");
+  document.body.classList.add(theme);
+  localStorage.setItem("theme", theme);
+  if (theme === "light-theme") {
+    renderer.setClearColor(0xffffff);
+    addStars(0x000000); // Black stars on white bg
+    tooltip.style.color = "black";
+  } else {
+    renderer.setClearColor(0x000000);
+    addStars(0xffffff); // White stars on dark bg
+    tooltip.style.color = "white";
+  }
+}
+
+const savedTheme = localStorage.getItem("theme") || "dark-theme";
+applyTheme(savedTheme);
+
+themeToggle.addEventListener("click", () => {
+  const current = document.body.classList.contains("dark-theme") ? "dark-theme" : "light-theme";
+  const nextTheme = current === "dark-theme" ? "light-theme" : "dark-theme";
+  applyTheme(nextTheme);
+});
