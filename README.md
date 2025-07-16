@@ -29,4 +29,21 @@ This is a browser-based 3D simulation of our solar system built using [Three.js]
 ---
 
 ## 📁 Project Structure
+📦 solar-system-3d/
+├── index.html # Main HTML file
+├── style.css # Styles for control panel and theming
+├── script.js # Three.js logic, animation, interactivity
+├── textures/ # Folder containing planet textures
+│ ├── earth.png
+│ ├── jupiter.png
+│ ├── saturn.png
+│ └── neptune.png
+└── README.md 
 
+---
+
+## 🔧 Getting Started
+
+### Prerequisites
+- A modern browser (Chrome, Firefox, Edge)
+- Internet connection (Three.js is loaded via CDN)
